@@ -1,60 +1,70 @@
 window.onload = init;
-
-let canvas;
-let ctx;
-let width;
-let height;
-let cursorX;
-let cursorY;
+var gf;
 
 function init() {
-  canvas = document.querySelector("#myCanvas");
-  ctx = canvas.getContext("2d");
-  width = canvas.width;
-  height = canvas.height;
-  x = 50;
-  y = 30;
+  gf = new GameFramework();
+  gf.init();
+}
 
-// triangle(cursorX,cursorY);
+function GameFramework() {
+  let canvas, ctx, width, height;
+  let hero;
 
-anime();
+  function init() {
+    canvas = document.querySelector("#myCanvas");
+    ctx = canvas.getContext("2d");
 
+    width = canvas.width;
+    height = canvas.height;
 
+    let x = canvas.width / 2;
+    let y = canvas.height - 100;
 
+    hero = new Hero(x, y);
+  
+    animate();
+  }
 
+  function animate() {
+      ctx.clearRect(0, 0, width, height);
+      
+      hero.draw(ctx);
 
+      //requestAnimationFrame(animate);
+  }
 
+  return {
+    init:init
+  }
+}
 
+class Hero {
+  constructor(positionX, positionY) {
+    this.x = positionX;
+    this.y = positionY;
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - 50, this.y + 40);
+    ctx.lineTo(this.x + 50, this.y + 40);
+    ctx.closePath();
+    ctx.fillStyle = "blue";
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 
-function anime(){
-    ctx.fillStyle="red";
-    ctx.fillRect(0,0,width,height); 
-    ctx.fillStyle="black";
-    triangle(cursorX,cursorY);
-    requestAnimationFrame(anime);
-}
 
-function fond(){
-    
-}
-
-
-document.addEventListener('mousemove', onMouseUpdate, false);
-document.addEventListener('mouseenter', onMouseUpdate, false);
-function onMouseUpdate(e) {
+/*function onMouseUpdate(e) {
     cursorX = e.pageX;
     cursorY = e.pageY;
-}
+}*/
 
-
-
-
-
-
-
-  function triangle (x,y){
+  /*function triangle (x,y){
 
     ctx.beginPath();
     ctx.moveTo(x, y-30);
@@ -64,5 +74,5 @@ function onMouseUpdate(e) {
     requestAnimationFrame( function(){
         triangle(cursorX,cursorY);
       })
-  }
+  }*/
 
