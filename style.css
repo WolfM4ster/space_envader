@@ -1,4 +1,5 @@
 #myCanvas {
     border: 1px solid black;
-    background-color: lightgrey;
+    background:url(http://cdn.mysitemyway.com/etc-mysitemyway/webtreats/assets/posts/857/full/tileable-classic-nebula-space-patterns-6.jpg);
+    animation-timing-function: linear;
   }
