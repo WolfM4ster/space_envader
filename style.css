@@ -1,5 +1,18 @@
 #myCanvas {
     border: 1px solid black;
-    background:url(http://cdn.mysitemyway.com/etc-mysitemyway/webtreats/assets/posts/857/full/tileable-classic-nebula-space-patterns-6.jpg);
-    animation-timing-function: linear;
+    /*background:url(http://cdn.mysitemyway.com/etc-mysitemyway/webtreats/assets/posts/857/full/tileable-classic-nebula-space-patterns-6.jpg);*/
   }
+
+  #animatedBackground{
+    background:url(http://cdn.mysitemyway.com/etc-mysitemyway/webtreats/assets/posts/857/full/tileable-classic-nebula-space-patterns-6.jpg);
+    animation:20s scroll infinite linear;
+    width:1500px;
+    height:700px;
+  }
+  
+  @-webkit-keyframes scroll{
+    100%{
+      background-position:0px 3000px;
+    }
+  }
+  /*source : https://codepen.io/ScottMarshall/pen/fnmtx*/
