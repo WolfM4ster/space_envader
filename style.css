@@ -1,0 +1,18 @@
+#myCanvas {
+    border: 1px solid black;
+    /*background:url(http://cdn.mysitemyway.com/etc-mysitemyway/webtreats/assets/posts/857/full/tileable-classic-nebula-space-patterns-6.jpg);*/
+  }
+
+  #animatedBackground{
+    background:url(space.jpg);
+    animation:1s scroll infinite linear;
+    width:1500px;
+    height:700px;
+  }
+  
+  @-webkit-keyframes scroll{
+    100%{
+      background-position:0px 700px;
+    }
+  }
+  /*source : https://codepen.io/ScottMarshall/pen/fnmtx*/
