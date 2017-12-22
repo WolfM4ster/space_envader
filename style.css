@@ -4,10 +4,10 @@
   }
 
   #animatedBackground{
-    background:url(space.jpg);
-    animation:1s scroll infinite linear;
-    width:1500px;
-    height:700px;
+    background:url(space.png);
+    animation:20s scroll infinite linear;
+    width:850px;
+    height:600px;
   }
   
   @-webkit-keyframes scroll{
