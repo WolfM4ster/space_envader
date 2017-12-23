@@ -19,13 +19,17 @@ function GameFramework() {
   let musicDuringGame = "./music/jeu.mp3";
   let musicMenu = "./music/musicMenu.mp3";
 
-  
+
   let audioShoot = new Audio(musicShoot);
   let audioExplosion = new Audio(musicExplosion);
-
   let audioBackgroundMenu = new Audio(musicMenu);
   let audioBackgroundGame = new Audio(musicDuringGame);
   let audioBackgroundGameOver = new Audio(musicGameOver);
+
+  audioBackgroundMenu.loop = true;
+  audioBackgroundGame.loop = true;
+  audioBackgroundGameOver.loop = true;
+
 
   let imageHero = "USS_Enterprise.png";
   
@@ -73,8 +77,8 @@ function GameFramework() {
     
     else if (gameMode == 1) {
       audioBackgroundGame.play();
-      audioBackgroundGameOver.stop();
-      audioBackgroundMenu.stop();
+      audioBackgroundGameOver.currentTime = 0;
+      audioBackgroundMenu.currentTime = 0;
       ctx.clearRect(0, 0, width, height);
       displayScore(messageScoreDuringGame, 10, 30);
 
@@ -122,6 +126,7 @@ function GameFramework() {
   }
 
   function menu() {
+    audioBackgroundMenu.play();
     audioBackgroundGameOver.currentTime = 0;
     audioBackgroundGame.currentTime = 0;
     ctx.fillStyle = "black";
@@ -144,7 +149,7 @@ function GameFramework() {
   function gameOver() {
     audioBackgroundGameOver.play();
     audioBackgroundMenu.currentTime = 0;
-    audioBackgroundMenu.currentTime = 0;
+    audioBackgroundGame.currentTime = 0;
     //musicBackground.stop();
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
