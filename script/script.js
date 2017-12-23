@@ -1,3 +1,6 @@
+// Space Marine Game on js by used the canvas element
+// Edited By Abdoullah REZGUI & Adrien ZOCCO
+
 window.onload = init;
 var gf;
 
@@ -10,15 +13,13 @@ function GameFramework() {
   let canvas = document.querySelector("#myCanvas");
   let ctx = canvas.getContext("2d");
   let width, height;
-  let hero;
 
-  //let musicChoised = "./Star Trek U.S.S. Enterprise Theme.mp3";
+  //All the music used in the game
   let musicExplosion = "./music/explosion.mp3";
   let musicShoot = "./music/shoot.mp3";
   let musicGameOver = "./music/gameOver.wav";
   let musicDuringGame = "./music/jeu.mp3";
   let musicMenu = "./music/musicMenu.mp3";
-
 
   let audioShoot = new Audio(musicShoot);
   let audioExplosion = new Audio(musicExplosion);
@@ -30,26 +31,39 @@ function GameFramework() {
   audioBackgroundGame.loop = true;
   audioBackgroundGameOver.loop = true;
 
-
-  let imageHero = "USS_Enterprise.png";
-  
-  //let musicGame = new Music();
-  let asteroids = [];
+  let hero;
+  let imageHero = "./images/airCombat.png";
   let isAlive = true;
-  let numberAsteroids = 1;
   let score = 0;
+  let initialPostionHeroX = canvas.width / 2;
+  let initialPostionHeroY = canvas.height - 350;
+
+  let diminutionScoreByAsteroidPassage = 10;
+
+  let asteroids = [];
+  let numberAsteroids = 1;
+  let imageAsteroid = "./images/asteroid_brown.jpg";
+
   let timerAstero = 0;
   let frequenceApparitionAsteroid = 60;
-  let maxNumberShoot = 5;
+  let bonusOnShootAsteroid = 50;
+
   let tabShoot = [];
   let gameMode = 0;
   let compteurMenu = 0;
+
   let img = new Image();
   let imgJouerPress = new Image();
   let imgJouer = new Image();
   let imgGameOver = new Image();
+
   let messageScoreDuringGame = "Score : ";
   let messageScoreGameOver = "Votre score est de ";
+
+  let weightShoot = 5;
+  let heightShoot = 10;
+  let rangeXShoot = 0;
+  let rangeYShoot = 10;
 
   window.addEventListener('mousemove', onMouseUpdate, false);
   window.addEventListener('click', createShoot, false);
@@ -65,16 +79,16 @@ function GameFramework() {
   }
 
   function initialiseHeroAndPosition() {
-    let x = canvas.width / 2;
-    let y = canvas.height - 350;
-    hero = new Hero(imageHero, x, y, 67, 170);
+    let x = initialPostionHeroX;
+    let y = initialPostionHeroY;
+    hero = new Hero(imageHero, x, y, 95, 120);
   }
 
+  //Main interation function of the game, we sorry to put so much elements on it :'(
   function animate() {
     if (gameMode === 0) {
-      menu();
+      displayMainMenu();
     } 
-    
     else if (gameMode === 1) {
       audioBackgroundGame.play();
       audioBackgroundGameOver.currentTime = 0;
@@ -82,67 +96,41 @@ function GameFramework() {
       ctx.clearRect(0, 0, width, height);
       displayScore(messageScoreDuringGame, 10, 30);
 
+      //if we died gameMode = 2 -> gameOver
       if (!isAlive) {
         gameMode = 2;
       }
+      //timer for create asteroids
       if (timerAstero === frequenceApparitionAsteroid) {
         createAsteroid(1);
         timerAstero = 0;
         frequenceApparitionAsteroid = (Math.floor(Math.random() * 40) + 10);
       }
 
+      //draw ship, asteroids and shoot
       hero.draw(ctx);
       drawAsteroids();
       drawShoot();
       timerAstero++;
     }
+    //game over
     if (gameMode === 2) {
-      gameOver();
+      displayMenuGameOver();
     }
 
     requestAnimationFrame(animate);
   }
 
-  function keypress(e) {
-    if (gameMode === 0) {
-      gameMode = 1;
-    }
-    else if(gameMode === 2) {
-      renitialiseGame();
-    }
-  }
-
-  function renitialiseGame() {
-    gameMode = 1;
-    isAlive = true;
-    tabShoot = [];
-    asteroids = [];
-    score = 0;
-  }
-
-  function displayScore(message, x, y) {
-    ctx.save();
-    ctx.font = "30px Arial";
-    ctx.fillStyle = "white";
-    ctx.fillText(message + score, x, y);
-    ctx.restore();
-  }
-
-  function incrementScore() {
-    if (isAlive) {
-      score += 50;
-    }
-  }
-
-  function menu() {
+  // Display the first menu on the canvas
+  function displayMainMenu() {
     audioBackgroundMenu.play();
     audioBackgroundGameOver.currentTime = 0;
     audioBackgroundGame.currentTime = 0;
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
-    imgJouerPress.src = "jouer3.png";
-    imgJouer.src = "jouer2.png";
-    img.src = "menuLayout.png";
+    imgJouerPress.src = "./images/jouer3.png";
+    imgJouer.src = "./images/jouer2.png";
+    img.src = "./images/menuLayout.png";
     ctx.drawImage(img, 0, 0, width, height);
     if (compteurMenu > 30) {
       ctx.drawImage(imgJouerPress, 0, 0, width, height);
@@ -155,66 +143,53 @@ function GameFramework() {
     compteurMenu++;
   }
 
-  function gameOver() {
-    audioBackgroundGameOver.play();
-    audioBackgroundMenu.currentTime = 0;
-    audioBackgroundGame.currentTime = 0;
-    //musicBackground.stop();
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, width, height);
-    imgGameOver.src = "GameOver.png";
-    ctx.drawImage(imgGameOver, 0, 0, width, height);
-    displayScore(messageScoreGameOver, height / 2, width / 2);
+  //Display the current score of player
+  function displayScore(message, x, y) {
+    ctx.save();
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText(message + score, x, y);
+    ctx.restore();
   }
 
+  // create asteroid, in random x position
   function createAsteroid(n) {
     for (var i = 0; i < n; i++) {
-      let img = "./asteroid_brown.jpg";
+      let img = imageAsteroid;
       let x = width * Math.random();
       let y = 0;
       let w = 40 + 10 * Math.random();
       let h = 40 + 10 * Math.random();
       let vx = 0;
-      let vy = 2 + 2 * Math.random();
+      let vy = 2 + 1 * Math.random();
 
       let asteroid = new Asteroid(img, x, y, vx, vy, w, h);
       asteroids.push(asteroid);
     }
   }
 
+  //Draw Asteroid object, move it, detect collision with Hero, and discrease score when element isn't shoot by player
   function drawAsteroids() {
     for (i = 0; i < asteroids.length; i++) {
       asteroids[i].draw(ctx);
       asteroids[i].move();
 
-      if(detectCollision(hero, asteroids[i])) {
+      //condition for verify if we dead or not
+      if (detectCollision(hero, asteroids[i])) {
         isAlive = false;
       }
 
-      if(asteroids[i].getY() > 650) {
+      //deletion of asteroids out of the screen
+      if (asteroids[i].getY() > 650) {
         asteroids.splice(i, 1);
-        if(score != 0) {
-          score -= 50;
+        if (score != 0) {
+          score -= diminutionScoreByAsteroidPassage;
         }
       }
     }
   }
 
-  function createShoot() {
-    let x = hero.getX() + 30;
-    let y = hero.getY();
-    let w = 5;
-    let h = 10;
-    let vx = 0;
-    let vy = 5;
-
-    let shoot = new Shoot(x, y, vx, vy, w, h);
-    tabShoot.push(shoot);
-    audioShoot.currentTime = 0;
-    audioShoot.play();
-  }
-
-  
+  //Draw shoot object, move it, and play sound when it detect collision with asteroid
   function drawShoot() {
     for (var i = 0; i < tabShoot.length; i++) {
       tabShoot[i].draw(ctx);
@@ -222,33 +197,86 @@ function GameFramework() {
 
       for (var j = 0; j < asteroids.length; j++) {
         if (typeof tabShoot[i] !== "undefined") {
-          if(detectCollision(tabShoot[i], asteroids[j])) {
+          if (detectCollision(tabShoot[i], asteroids[j])) {
             asteroids.splice(j, 1);
             tabShoot.splice(i, 1);
-            audioExplosion.currentTime = 0;
-            audioExplosion.play();
-            incrementScore();
+            playSound(audioExplosion);
+            incrementScoreOnShootAsteroid();
           }
         }
       }
+
       if (typeof tabShoot[i] !== "undefined") {
-        if(tabShoot[i].getY() < 0) {
+        if (tabShoot[i].getY() < 0) {
           tabShoot.splice(i, 1);
         }
       }
     }
   }
 
-  function onMouseUpdate(e) {
-    hero.positionX = e.pageX -35;
-    hero.positionY = e.pageY;
+  // Display the menu of gameOver
+  function displayMenuGameOver() {
+    audioBackgroundGameOver.play();
+    audioBackgroundMenu.currentTime = 0;
+    audioBackgroundGame.currentTime = 0;
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, width, height);
+    imgGameOver.src = "./images/GameOver.png";
+    ctx.drawImage(imgGameOver, 0, 0, width, height);
+    displayScore(messageScoreGameOver, height / 2, width / 2);
   }
 
+  //Detect collision between two elements
   function detectCollision(target, enemy) {
     return ((target.getX() < enemy.getX() + enemy.getWidth()) &&
       (target.getX() + target.getWidth() > enemy.getX()) &&
       (target.getY() < enemy.getY() + enemy.getHeight()) &&
       (target.getHeight() + target.getY() > enemy.getY()));
+  }
+
+  function playSound(objectAudio) {
+    objectAudio.currentTime = 0;
+    objectAudio.play();
+  }
+
+  function incrementScoreOnShootAsteroid() {
+    score += bonusOnShootAsteroid;
+  }
+
+  //position of hero = position of mouse
+  function onMouseUpdate(e) {
+    hero.positionX = e.pageX - 35;
+    hero.positionY = e.pageY;
+  }
+
+  function createShoot() {
+    let x = hero.getX() + 47;
+    let y = hero.getY();
+    let weightShoot = 5;
+    let heightShoot = 10;
+    let rangeXShoot = 0;
+    let rangeYShoot = 10;
+
+    let shoot = new Shoot(x, y, rangeXShoot, rangeYShoot, weightShoot, heightShoot);
+    tabShoot.push(shoot);
+    playSound(audioShoot);
+  }
+
+  //if we are in the menu and we press button, we play
+  function keypress() {
+    if (gameMode === 0) {
+      gameMode = 1;
+    } else if (gameMode === 2) {
+      renitialiseGame();
+    }
+  }
+
+  function renitialiseGame() {
+    gameMode = 1;
+    isAlive = true;
+    tabShoot = [];
+    asteroids = [];
+    score = 0;
   }
 
   return {
@@ -257,12 +285,12 @@ function GameFramework() {
 }
 
 class ObjectGraphical {
-  constructor(imageSrc, positionX, positionY, vitesseX, vitesseY, width, height) {
+  constructor(imageSrc, positionX, positionY, rangeX, rangeY, width, height) {
     this.imageSrc = imageSrc;
     this.positionX = positionX;
     this.positionY = positionY;
-    this.vitesseX = vitesseX;
-    this.vitesseY = vitesseY;
+    this.rangeX = rangeX;
+    this.rangeY = rangeY;
     this.width = width;
     this.height = height;
   }
@@ -277,8 +305,8 @@ class ObjectGraphical {
 }
 
 class Asteroid extends ObjectGraphical {
-  constructor(imageSrc, positionX, positionY, vitesseX, vitesseY, width, height) {
-    super(imageSrc, positionX, positionY, vitesseX, vitesseY, width, height);
+  constructor(imageSrc, positionX, positionY, rangeX, rangeY, width, height) {
+    super(imageSrc, positionX, positionY, rangeX, rangeY, width, height);
   }
 
   draw(ctx) {
@@ -286,7 +314,7 @@ class Asteroid extends ObjectGraphical {
   }
 
   move() {
-    this.positionY += this.vitesseY;
+    this.positionY += this.rangeY;
   }
 
   getX() {
@@ -333,8 +361,8 @@ class Hero extends ObjectGraphical {
 }
 
 class Shoot extends ObjectGraphical {
-  constructor(positionX, positionY, vitesseX, vitesseY, width, height) {
-    super(null, positionX, positionY, vitesseX, vitesseY, width, height);
+  constructor(positionX, positionY, rangeX, rangeY, width, height) {
+    super(null, positionX, positionY, rangeX, rangeY, width, height);
   }
 
   draw(ctx) {
@@ -345,7 +373,7 @@ class Shoot extends ObjectGraphical {
   }
 
   move() {
-    this.positionY -= this.vitesseY;
+    this.positionY -= this.rangeY;
   }
 
   getX() {
@@ -364,30 +392,3 @@ class Shoot extends ObjectGraphical {
     return this.width;
   }
 }
-
-/*function Music(musicChoised) {
-  let audio;
-
-  function playLoop() {
-    audio = new Audio(musicChoised);
-    audio.loop = true;
-    audio.play();
-  }
-
-  function stop() {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-  function changeAndPlay(newMusic) {
-    audio = new Audio(newMusic);
-    audio.loop = true;
-    audio.play();
-  }
-
-  return {
-    playLoop: playLoop,
-    stop: stop,
-    changeAndPlay: changeAndPlay
-  }
-}*/
