@@ -11,10 +11,20 @@ function GameFramework() {
   let ctx = canvas.getContext("2d");
   let width, height;
   let hero;
-  let musicChoised = "./Star Trek U.S.S. Enterprise Theme.mp3";
+
+  //let musicChoised = "./Star Trek U.S.S. Enterprise Theme.mp3";
+  let musicExplosion = "./music/explosion.mp3";
+  let musicShoot = "./music/shoot.mp3";
+  let musicGameOver = "./music/gameOver.wav";
+  let musicDuringGame = "./music/jeu.mp3";
+  let musicMenu = "./music/musicMenu.mp3";
+
+  var audioShoot = new Audio(musicShoot);
+  //let audioExplosion = new Audio(musicExplosion);
+
   let imageHero = "USS_Enterprise.png";
-  let music = new Music(musicChoised);
-  //let background = new Background("./space.jpg");
+  let musicBackground = new Music(musicMenu);
+  let musicGame = new Music();
   let asteroids = [];
   let isAlive = true;
   let numberAsteroids = 1;
@@ -32,17 +42,35 @@ function GameFramework() {
   let messageScoreDuringGame = "Score : ";
   let messageScoreGameOver = "Votre score est de ";
   //let imagesAsteroid = ["", ]
-  
+  //var item = items[Math.floor(Math.random()*items.length)];
 
   window.addEventListener('mousemove', onMouseUpdate, false);
   window.addEventListener('click', createShoot, false);
   window.addEventListener("keypress", keypress);
-  //window.addEventListener('keydown', handleKeydown, false);
+
+  /*Object.observe(gameMode, function() {
+      switch(gameMode.value) {
+        case 0:
+          musicBackground.changeAndPlay(musicMenu);
+          break;
+
+        case 1:
+          musicBackground.changeAndPlay(musicDuringGame);
+          break;
+
+        case 2:
+          musicBackground.changeAndPlay(musicGameOver);
+          break;
+        
+        default:
+          break;
+      }
+  });*/
 
   function init() {
     width = canvas.width;
     height = canvas.height;
-    music.play();
+    musicBackground.playLoop(musicMenu);
     initialiseHeroAndPosition();
 
     animate();
@@ -61,7 +89,6 @@ function GameFramework() {
     
     else if (gameMode == 1) {
       ctx.clearRect(0, 0, width, height);
-
       displayScore(messageScoreDuringGame, 10, 30);
 
       if (!isAlive) {
@@ -116,7 +143,7 @@ function GameFramework() {
     ctx.drawImage(img, 0, 0, width, height);
     if (compteurMenu > 30) {
       ctx.drawImage(imgJouerPress, 0, 0, width, height);
-      if (compteurMenu === 60) {
+      if (compteurMenu == 60) {
         compteurMenu = 0;
       }
     } else {
@@ -126,21 +153,12 @@ function GameFramework() {
   }
 
   function gameOver() {
+    musicBackground.stop();
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
     imgGameOver.src = "GameOver.png";
     ctx.drawImage(imgGameOver, 0, 0, width, height);
     displayScore(messageScoreGameOver, height / 2, width / 2);
-  }
-
-  function isInsideZone(e) {
-    return (
-      (e.pageX >= 0 && e.pageX <= width) &&
-      ((e.pageX + hero.width) >= 0 && (e.pageX + hero.width) <= width) &&
-
-      (e.pageY >= 0 && e.pageY <= height) &&
-      ((e.pageY + hero.height) >= 0 && (e.pageY + hero.height) <= height)
-    );
   }
 
   function createAsteroid(n) {
@@ -151,7 +169,7 @@ function GameFramework() {
       let w = 40 + 10 * Math.random();
       let h = 40 + 10 * Math.random();
       let vx = 0;
-      let vy = 3 + 2 * Math.random();
+      let vy = 2 + 2 * Math.random();
 
       let asteroid = new Asteroid(img, x, y, vx, vy, w, h);
       asteroids.push(asteroid);
@@ -169,6 +187,9 @@ function GameFramework() {
 
       if(asteroids[i].getY() > 650) {
         asteroids.splice(i, 1);
+        if(score != 0) {
+          score -= 50;
+        }
       }
     }
   }
@@ -183,6 +204,8 @@ function GameFramework() {
 
     let shoot = new Shoot(x, y, vx, vy, w, h);
     tabShoot.push(shoot);
+    //audioShoot = new Audio(musicShoot);
+    audioShoot.play();
   }
 
   function drawShoot() {
@@ -195,6 +218,8 @@ function GameFramework() {
           if(detectCollision(tabShoot[i], asteroids[j])) {
             asteroids.splice(j, 1);
             tabShoot.splice(i, 1);
+            audioExplosion = new Audio(musicExplosion);
+            audioExplosion.play();
             incrementScore();
           }
         }
@@ -208,10 +233,8 @@ function GameFramework() {
   }
 
   function onMouseUpdate(e) {
-    if (hero.isInsideZone(width, height) && isInsideZone(e)) {
-      hero.positionX = e.pageX;
-      hero.positionY = e.pageY;
-    }
+    hero.positionX = e.pageX -35;
+    hero.positionY = e.pageY;
   }
 
   function detectCollision(target, enemy) {
@@ -244,16 +267,6 @@ class ObjectGraphical {
     ctx.drawImage(img, this.positionX, this.positionY, this.width, this.height);
     ctx.restore();
   }
-
-  isInsideZone(width, height) {
-    return (
-      (this.positionX >= 0 && this.positionX <= width) &&
-      ((this.positionX + this.width) >= 0 && (this.positionX + this.width) <= width) &&
-
-      (this.positionY >= 0 && this.positionY <= height) &&
-      ((this.positionY + this.height) >= 0 && (this.positionY + this.height) <= height)
-    );
-  }
 }
 
 class Asteroid extends ObjectGraphical {
@@ -263,10 +276,6 @@ class Asteroid extends ObjectGraphical {
 
   draw(ctx) {
     super.draw(ctx);
-  }
-
-  isInsideZone(width, height) {
-    return super.isInsideZone(width, height);
   }
 
   move() {
@@ -297,10 +306,6 @@ class Hero extends ObjectGraphical {
 
   draw(ctx) {
     super.draw(ctx);
-  }
-
-  isInsideZone(width, height) {
-    return super.isInsideZone(width, height);
   }
 
   getX() {
@@ -356,33 +361,26 @@ class Shoot extends ObjectGraphical {
 function Music(musicChoised) {
   let audio;
 
-  function play() {
+  function playLoop() {
     audio = new Audio(musicChoised);
     audio.loop = true;
     audio.play();
   }
 
   function stop() {
-    audio.stop();
+    audio.pause();
+    audio.currentTime = 0;
   }
 
-  function change(newMusic) {
-    musicChoised = newMusic;
+  function changeAndPlay(newMusic) {
+    audio = new Audio(newMusic);
+    audio.loop = true;
+    audio.play();
   }
 
   return {
-    play: play,
+    playLoop: playLoop,
     stop: stop,
-    change: change
+    changeAndPlay: changeAndPlay
   }
 }
-
-/*class Background {
-  constructor(imageSrc) {
-    this.imageSrc = imageSrc;
-  }
-
-  scroll() {
-
-  }
-}*/
