@@ -1,15 +1,3 @@
-/*
-  Pour mardi 19 décembre:
-  - Créer une classe Monster
-  - dans le constructor, on initialise un setInterval pour update la position du monstre en fonction de la vitesse (par exemple: 2pixels en Y/10 ms)
-  1pixels en Y/10 ms
-  1pixels en Y/50 ms
-  Ajouter fonction detectCollision
-  dedans, on va verifier que le hero ne touche aucun monstre en considérant la position du hero, des monstres avec leur tailles
-  Et s'il y a collision, arret du jeu
-  window.alert('STOP')
-*/
-
 window.onload = init;
 var gf;
 
@@ -34,57 +22,115 @@ function GameFramework() {
   let timerAstero = 0;
   let frequenceApparitionAsteroid = 60;
   let maxNumberShoot = 5;
+  let tabShoot = [];
+  let gameMode = 0;
+  let compteurMenu = 0;
+  let img = new Image();
+  let imgJouerPress = new Image();
+  let imgJouer = new Image();
+  let imgGameOver = new Image();
+  let messageScoreDuringGame = "Score : ";
+  let messageScoreGameOver = "Votre score est de ";
+  //let imagesAsteroid = ["", ]
+  
 
   window.addEventListener('mousemove', onMouseUpdate, false);
-  //window.addEventListener('click', shoot, false);
+  window.addEventListener('click', createShoot, false);
+  window.addEventListener("keypress", keypress);
   //window.addEventListener('keydown', handleKeydown, false);
-  
+
   function init() {
     width = canvas.width;
     height = canvas.height;
     music.play();
     initialiseHeroAndPosition();
-  
-    animate();
-  }
 
-  function displayMessage(ctx) {
-    ctx.save();
-    ctx.font = "30px Arial";
-    ctx.fillText("Hello World",10,50);
-    ctx.restore();
+    animate();
   }
 
   function initialiseHeroAndPosition() {
     let x = canvas.width / 2;
     let y = canvas.height - 350;
-    hero = new Hero(imageHero, x, y, 67, 200);
+    hero = new Hero(imageHero, x, y, 67, 170);
   }
 
   function animate() {
-    ctx.clearRect(0, 0, width, height);
+    if (gameMode == 0) {
+      menu();
+    } 
+    
+    else if (gameMode == 1) {
+      ctx.clearRect(0, 0, width, height);
 
-    incrementScore();
+      displayScore(messageScoreDuringGame, 10, 30);
 
-    if(!isAlive) {
-      window.alert("Game over");
+      if (!isAlive) {
+        gameMode = 2;
+      }
+      if (timerAstero === frequenceApparitionAsteroid) {
+        createAsteroid(1);
+        timerAstero = 0;
+        frequenceApparitionAsteroid = (Math.floor(Math.random() * 40) + 10);
+      }
+
+      hero.draw(ctx);
+      drawAsteroids();
+      drawShoot();
+      timerAstero++;
     }
-    if(timerAstero === frequenceApparitionAsteroid){
-      createAsteroid(1);
-      timerAstero=0;
-      frequenceApparitionAsteroid = (Math.floor(Math.random() * 40) + 10);
+    if (gameMode == 2) {
+      gameOver();
     }
-    hero.draw(ctx);
-    drawAsteroids();
-    timerAstero++;
 
     requestAnimationFrame(animate);
   }
 
-  function incrementScore() {
-    if(isAlive) {
-      score++;
+  function keypress(e) {
+    if (gameMode == 0) {
+      gameMode = 1;
+    } else {
+      gameMode = 1;
     }
+  }
+
+  function displayScore(message, x, y) {
+    ctx.save();
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText(message + score, x, y);
+    ctx.restore();
+  }
+
+  function incrementScore() {
+    if (isAlive) {
+      score += 50;
+    }
+  }
+
+  function menu() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, width, height);
+    imgJouerPress.src = "jouer3.png";
+    imgJouer.src = "jouer2.png";
+    img.src = "menuLayout.png";
+    ctx.drawImage(img, 0, 0, width, height);
+    if (compteurMenu > 30) {
+      ctx.drawImage(imgJouerPress, 0, 0, width, height);
+      if (compteurMenu === 60) {
+        compteurMenu = 0;
+      }
+    } else {
+      ctx.drawImage(imgJouer, 0, 0, width, height);
+    }
+    compteurMenu++;
+  }
+
+  function gameOver() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, width, height);
+    imgGameOver.src = "GameOver.png";
+    ctx.drawImage(imgGameOver, 0, 0, width, height);
+    displayScore(messageScoreGameOver, height / 2, width / 2);
   }
 
   function isInsideZone(e) {
@@ -98,25 +144,25 @@ function GameFramework() {
   }
 
   function createAsteroid(n) {
-    for(var i = 0; i < n; i++) {
+    for (var i = 0; i < n; i++) {
       let img = "./asteroid_brown.jpg";
       let x = width * Math.random();
       let y = 0;
       let w = 40 + 10 * Math.random();
       let h = 40 + 10 * Math.random();
       let vx = 0;
-      let vy = 2.5;
-  
+      let vy = 3 + 2 * Math.random();
+
       let asteroid = new Asteroid(img, x, y, vx, vy, w, h);
       asteroids.push(asteroid);
     }
   }
 
   function drawAsteroids() {
-    for(i = 0; i < asteroids["length"]; i++){
+    for (i = 0; i < asteroids.length; i++) {
       asteroids[i].draw(ctx);
       asteroids[i].move();
-      
+
       if(detectCollision(hero, asteroids[i])) {
         isAlive = false;
       }
@@ -128,28 +174,35 @@ function GameFramework() {
   }
 
   function createShoot() {
-      let x = hero.getX();
-      let y = hero.getY();
-      let w = 10;
-      let h = 20;
-      let vx = 0;
-      let vy = 5;
+    let x = hero.getX() + 30;
+    let y = hero.getY();
+    let w = 5;
+    let h = 10;
+    let vx = 0;
+    let vy = 5;
 
-      let shoot = new Shoot(x, y, vx, vy, w, h);
-      monsters.push(monster);
+    let shoot = new Shoot(x, y, vx, vy, w, h);
+    tabShoot.push(shoot);
   }
 
   function drawShoot() {
-    for(i = 0; i < monsters["length"]; i++){
-      monsters[i].draw(ctx);
-      monsters[i].move();
-      
-      if(detectCollision(hero, monsters[i])) {
-        isAlive = false;
-      }
+    for (var i = 0; i < tabShoot.length; i++) {
+      tabShoot[i].draw(ctx);
+      tabShoot[i].move();
 
-      if(monsters[i].getY() > 650) {
-        monsters.splice(i, 1);
+      for (var j = 0; j < asteroids.length; j++) {
+        if (typeof tabShoot[i] !== "undefined") {
+          if(detectCollision(tabShoot[i], asteroids[j])) {
+            asteroids.splice(j, 1);
+            tabShoot.splice(i, 1);
+            incrementScore();
+          }
+        }
+      }
+      if (typeof tabShoot[i] !== "undefined") {
+        if(tabShoot[i].getY() < 0) {
+          tabShoot.splice(i, 1);
+        }
       }
     }
   }
@@ -162,10 +215,10 @@ function GameFramework() {
   }
 
   function detectCollision(target, enemy) {
-    return ((target.getX() < enemy.getX() + enemy.getWidth()) && 
-            (target.getX() + target.getWidth() > enemy.getX()) &&
-            (target.getY() < enemy.getY() + enemy.getHeight()) &&
-            (target.getHeight() + target.getY() > enemy.getY()));
+    return ((target.getX() < enemy.getX() + enemy.getWidth()) &&
+      (target.getX() + target.getWidth() > enemy.getX()) &&
+      (target.getY() < enemy.getY() + enemy.getHeight()) &&
+      (target.getHeight() + target.getY() > enemy.getY()));
   }
 
   return {
@@ -220,13 +273,13 @@ class Asteroid extends ObjectGraphical {
     this.positionY += this.vitesseY;
   }
 
-  getX(){
+  getX() {
     return this.positionX;
-  }  
-  
-  getY(){
+  }
+
+  getY() {
     return this.positionY;
-  }   
+  }
 
   getHeight() {
     return this.height;
@@ -250,13 +303,13 @@ class Hero extends ObjectGraphical {
     return super.isInsideZone(width, height);
   }
 
-  getX(){
+  getX() {
     return this.positionX;
-  }  
-  
-  getY(){
+  }
+
+  getY() {
     return this.positionY;
-  }   
+  }
 
   getHeight() {
     return this.height;
@@ -267,7 +320,7 @@ class Hero extends ObjectGraphical {
   }
 }
 
-class Shoot extends ObjectGraphical{
+class Shoot extends ObjectGraphical {
   constructor(positionX, positionY, vitesseX, vitesseY, width, height) {
     super(null, positionX, positionY, vitesseX, vitesseY, width, height);
   }
@@ -283,13 +336,13 @@ class Shoot extends ObjectGraphical{
     this.positionY -= this.vitesseY;
   }
 
-  getX(){
+  getX() {
     return this.positionX;
-  }  
-  
-  getY(){
+  }
+
+  getY() {
     return this.positionY;
-  }   
+  }
 
   getHeight() {
     return this.height;
@@ -306,7 +359,7 @@ function Music(musicChoised) {
   function play() {
     audio = new Audio(musicChoised);
     audio.loop = true;
-    audio.play(); 
+    audio.play();
   }
 
   function stop() {
@@ -318,13 +371,13 @@ function Music(musicChoised) {
   }
 
   return {
-    play:play,
-    stop:stop,
-    change:change
+    play: play,
+    stop: stop,
+    change: change
   }
 }
 
-class Background {
+/*class Background {
   constructor(imageSrc) {
     this.imageSrc = imageSrc;
   }
@@ -332,4 +385,4 @@ class Background {
   scroll() {
 
   }
-}
+}*/
