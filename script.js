@@ -27,14 +27,16 @@ function GameFramework() {
   let imageHero = "USS_Enterprise.png";
   let music = new Music(musicChoised);
   //let background = new Background("./space.jpg");
-  let monsters = [];
+  let asteroids = [];
   let isAlive = true;
-  let numberMonsters = 1;
+  let numberAsteroids = 1;
   let score = 0;
   let timerAstero = 0;
-  let frequenceApparitionMonster = 60;
+  let frequenceApparitionAsteroid = 60;
+  let maxNumberShoot = 5;
 
   window.addEventListener('mousemove', onMouseUpdate, false);
+  //window.addEventListener('click', shoot, false);
   //window.addEventListener('keydown', handleKeydown, false);
   
   function init() {
@@ -44,6 +46,13 @@ function GameFramework() {
     initialiseHeroAndPosition();
   
     animate();
+  }
+
+  function displayMessage(ctx) {
+    ctx.save();
+    ctx.font = "30px Arial";
+    ctx.fillText("Hello World",10,50);
+    ctx.restore();
   }
 
   function initialiseHeroAndPosition() {
@@ -60,13 +69,13 @@ function GameFramework() {
     if(!isAlive) {
       window.alert("Game over");
     }
-    if(timerAstero === frequenceApparitionMonster){
-      createMonster(1);
+    if(timerAstero === frequenceApparitionAsteroid){
+      createAsteroid(1);
       timerAstero=0;
-      frequenceApparitionMonster = (Math.floor(Math.random() * 40) + 10);
+      frequenceApparitionAsteroid = (Math.floor(Math.random() * 40) + 10);
     }
     hero.draw(ctx);
-    drawMonsters();
+    drawAsteroids();
     timerAstero++;
 
     requestAnimationFrame(animate);
@@ -75,7 +84,6 @@ function GameFramework() {
   function incrementScore() {
     if(isAlive) {
       score++;
-      console.log(score);
     }
   }
 
@@ -89,9 +97,9 @@ function GameFramework() {
     );
   }
 
-  function createMonster(n) {
+  function createAsteroid(n) {
     for(var i = 0; i < n; i++) {
-      let img = "./asteroid.jpg";
+      let img = "./asteroid_brown.jpg";
       let x = width * Math.random();
       let y = 0;
       let w = 40 + 10 * Math.random();
@@ -99,39 +107,36 @@ function GameFramework() {
       let vx = 0;
       let vy = 2.5;
   
-      let monster = new Monster(img, x, y, vx, vy, w, h);
-      monsters.push(monster);
+      let asteroid = new Asteroid(img, x, y, vx, vy, w, h);
+      asteroids.push(asteroid);
     }
   }
 
-  function drawMonsters() {
-    for(i = 0; i < monsters["length"]; i++){
-      monsters[i].draw(ctx);
-      monsters[i].move();
+  function drawAsteroids() {
+    for(i = 0; i < asteroids["length"]; i++){
+      asteroids[i].draw(ctx);
+      asteroids[i].move();
       
-      if(detectCollision(hero, monsters[i])) {
+      if(detectCollision(hero, asteroids[i])) {
         isAlive = false;
       }
 
-      if(monsters[i].getY() > 650) {
-        monsters.splice(i, 1);
+      if(asteroids[i].getY() > 650) {
+        asteroids.splice(i, 1);
       }
     }
   }
 
-  /*function createShoot(n) {
-    for(var i = 0; i < n; i++) {
-      let img = "./asteroid.jpg";
-      let x = width * Math.random();
-      let y = 0;
-      let w = 40 + 10 * Math.random();
-      let h = 40 + 10 * Math.random();
+  function createShoot() {
+      let x = hero.getX();
+      let y = hero.getY();
+      let w = 10;
+      let h = 20;
       let vx = 0;
-      let vy = 2.5;
-  
-      let monster = new Monster(img, x, y, vx, vy, w, h);
+      let vy = 5;
+
+      let shoot = new Shoot(x, y, vx, vy, w, h);
       monsters.push(monster);
-    }
   }
 
   function drawShoot() {
@@ -147,27 +152,20 @@ function GameFramework() {
         monsters.splice(i, 1);
       }
     }
-  }*/
-  /*function removeEnnemiesOutCanvas() {
-    for(var i = 0; i < monsters["length"]; i++) {
-      if(ennemi.getY() > 650) {
-        monsters.splice(i, 1);
-      }
-    }
-  }*/
+  }
 
   function onMouseUpdate(e) {
     if (hero.isInsideZone(width, height) && isInsideZone(e)) {
-      hero.x = e.pageX;
-      hero.y = e.pageY;
+      hero.positionX = e.pageX;
+      hero.positionY = e.pageY;
     }
   }
 
-  function detectCollision(player, ennemi) {
-    return ((player.getX() < ennemi.getX() + ennemi.getWidth()) && 
-            (player.getX() + player.getWidth() > ennemi.getX()) &&
-            (player.getY() < ennemi.getY() + ennemi.getHeight()) &&
-            (player.getHeight() + player.getY() > ennemi.getY()));
+  function detectCollision(target, enemy) {
+    return ((target.getX() < enemy.getX() + enemy.getWidth()) && 
+            (target.getX() + target.getWidth() > enemy.getX()) &&
+            (target.getY() < enemy.getY() + enemy.getHeight()) &&
+            (target.getHeight() + target.getY() > enemy.getY()));
   }
 
   return {
@@ -175,11 +173,11 @@ function GameFramework() {
   }
 }
 
-class Monster {
+class ObjectGraphical {
   constructor(imageSrc, positionX, positionY, vitesseX, vitesseY, width, height) {
     this.imageSrc = imageSrc;
-    this.x = positionX;
-    this.y = positionY;
+    this.positionX = positionX;
+    this.positionY = positionY;
     this.vitesseX = vitesseX;
     this.vitesseY = vitesseY;
     this.width = width;
@@ -190,30 +188,44 @@ class Monster {
     ctx.save();
     var img = new Image();
     img.src = this.imageSrc;
-    ctx.drawImage(img, this.x, this.y, this.width, this.height);
+    ctx.drawImage(img, this.positionX, this.positionY, this.width, this.height);
     ctx.restore();
-  }
-
-  move() {
-    this.y += this.vitesseY;
   }
 
   isInsideZone(width, height) {
     return (
-      (this.x >= 0 && this.x <= width) &&
-      ((this.x + this.width) >= 0 && (this.x + this.width) <= width) &&
+      (this.positionX >= 0 && this.positionX <= width) &&
+      ((this.positionX + this.width) >= 0 && (this.positionX + this.width) <= width) &&
 
-      (this.y >= 0 && this.y <= height) &&
-      ((this.y + this.height) >= 0 && (this.y + this.height) <= height)
+      (this.positionY >= 0 && this.positionY <= height) &&
+      ((this.positionY + this.height) >= 0 && (this.positionY + this.height) <= height)
     );
+  }
+}
+
+class Asteroid extends ObjectGraphical {
+  constructor(imageSrc, positionX, positionY, vitesseX, vitesseY, width, height) {
+    super(imageSrc, positionX, positionY, vitesseX, vitesseY, width, height);
+  }
+
+  draw(ctx) {
+    super.draw(ctx);
+  }
+
+  isInsideZone(width, height) {
+    return super.isInsideZone(width, height);
+  }
+
+  move() {
+    this.positionY += this.vitesseY;
   }
 
   getX(){
-    return this.x;
+    return this.positionX;
   }  
   
   getY(){
-    return this.y;
+    return this.positionY;
   }   
 
   getHeight() {
@@ -225,39 +237,58 @@ class Monster {
   }
 }
 
-class Hero {
+class Hero extends ObjectGraphical {
   constructor(imageSrc, positionX, positionY, width, height) {
-    this.imageSrc = imageSrc;
-    this.x = positionX;
-    this.y = positionY;
-    this.width = width;
-    this.height = height;
+    super(imageSrc, positionX, positionY, 0, 0, width, height);
+  }
+
+  draw(ctx) {
+    super.draw(ctx);
+  }
+
+  isInsideZone(width, height) {
+    return super.isInsideZone(width, height);
+  }
+
+  getX(){
+    return this.positionX;
+  }  
+  
+  getY(){
+    return this.positionY;
+  }   
+
+  getHeight() {
+    return this.height;
+  }
+
+  getWidth() {
+    return this.width;
+  }
+}
+
+class Shoot extends ObjectGraphical{
+  constructor(positionX, positionY, vitesseX, vitesseY, width, height) {
+    super(null, positionX, positionY, vitesseX, vitesseY, width, height);
   }
 
   draw(ctx) {
     ctx.save();
-    var img = new Image();
-    img.src = this.imageSrc;
-    ctx.drawImage(img, this.x, this.y, this.width, this.height);
+    ctx.fillStyle = "#ff6666";
+    ctx.fillRect(this.positionX, this.positionY, this.width, this.height);
     ctx.restore();
   }
 
-  isInsideZone(width, height) {
-    return (
-      (this.x >= 0 && this.x <= width) &&
-      ((this.x + this.width) >= 0 && (this.x + this.width) <= width) &&
-
-      (this.y >= 0 && this.y <= height) &&
-      ((this.y + this.height) >= 0 && (this.y + this.height) <= height)
-    );
+  move() {
+    this.positionY -= this.vitesseY;
   }
 
   getX(){
-    return this.x;
+    return this.positionX;
   }  
   
   getY(){
-    return this.y;
+    return this.positionY;
   }   
 
   getHeight() {
