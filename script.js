@@ -71,11 +71,11 @@ function GameFramework() {
   }
 
   function animate() {
-    if (gameMode == 0) {
+    if (gameMode === 0) {
       menu();
     } 
     
-    else if (gameMode == 1) {
+    else if (gameMode === 1) {
       audioBackgroundGame.play();
       audioBackgroundGameOver.currentTime = 0;
       audioBackgroundMenu.currentTime = 0;
@@ -96,7 +96,7 @@ function GameFramework() {
       drawShoot();
       timerAstero++;
     }
-    if (gameMode == 2) {
+    if (gameMode === 2) {
       gameOver();
     }
 
@@ -104,10 +104,15 @@ function GameFramework() {
   }
 
   function keypress(e) {
-    if (gameMode == 0) {
+    if (gameMode === 0) {
       gameMode = 1;
-    } else {
+    }
+    else if(gameMode == 2) {
+      //init();
       gameMode = 1;
+      isAlive = true;
+      tabShoot = [];
+      asteroids = [];
     }
   }
 
