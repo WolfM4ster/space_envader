@@ -107,13 +107,17 @@ function GameFramework() {
     if (gameMode === 0) {
       gameMode = 1;
     }
-    else if(gameMode == 2) {
-      //init();
-      gameMode = 1;
-      isAlive = true;
-      tabShoot = [];
-      asteroids = [];
+    else if(gameMode === 2) {
+      renitialiseGame();
     }
+  }
+
+  function renitialiseGame() {
+    gameMode = 1;
+    isAlive = true;
+    tabShoot = [];
+    asteroids = [];
+    score = 0;
   }
 
   function displayScore(message, x, y) {
