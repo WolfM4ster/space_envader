@@ -33,9 +33,28 @@ function GameFramework() {
   let score = 0;
   let timerAstero = 0;
   let frequenceApparitionMonster = 60;
+  let gameMode = 0;
+  let compteurMenu =0;
+  var img = new Image();
+  var imgJouerPress =new Image();
+  var imgJouer =new Image();
+  var imgGameOver =new Image();
 
   window.addEventListener('mousemove', onMouseUpdate, false);
+  window.addEventListener("keypress", keypress );
   //window.addEventListener('keydown', handleKeydown, false);
+
+  function keypress(e){
+
+    if(gameMode ==0){
+      gameMode = 1;
+    }
+    else {
+      gameMode = 1;
+    }
+    
+
+  }
   
   function init() {
     width = canvas.width;
@@ -52,13 +71,49 @@ function GameFramework() {
     hero = new Hero(imageHero, x, y, 67, 200);
   }
 
+  function menu(){
+    ctx.fillStyle = "black";
+    ctx.fillRect(0,0,width,height);
+
+    imgJouerPress.src = "jouer3.png";
+
+    imgJouer.src = "jouer2.png";
+    img.src = "menuLayout.png";
+    ctx.drawImage(img, 0, 0, width, height);
+    if(compteurMenu >30){
+    ctx.drawImage(imgJouerPress, 0, 0, width, height);
+    if(compteurMenu ==60){
+      compteurMenu =0;
+    }
+    }
+    else{
+      ctx.drawImage(imgJouer, 0, 0, width, height);
+    }
+
+    compteurMenu ++;
+
+  }
+
+  function gameOver(){
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(0,0,width,height);
+    imgGameOver.src = "GameOver.png";
+    ctx.drawImage(imgGameOver, 0, 0, width, height);
+
+  }
+
   function animate() {
+    if(gameMode == 0){
+      menu();
+    }
+    if(gameMode == 1){
     ctx.clearRect(0, 0, width, height);
 
     incrementScore();
 
     if(!isAlive) {
-      window.alert("Game over");
+      gameMode = 2;
     }
     if(timerAstero === frequenceApparitionMonster){
       createMonster(1);
@@ -68,6 +123,11 @@ function GameFramework() {
     hero.draw(ctx);
     drawMonsters();
     timerAstero++;
+  }
+  if(gameMode == 2){
+    gameOver();
+  }
+  
 
     requestAnimationFrame(animate);
   }
