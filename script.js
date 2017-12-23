@@ -19,12 +19,17 @@ function GameFramework() {
   let musicDuringGame = "./music/jeu.mp3";
   let musicMenu = "./music/musicMenu.mp3";
 
-  var audioShoot = new Audio(musicShoot);
-  //let audioExplosion = new Audio(musicExplosion);
+  
+  let audioShoot = new Audio(musicShoot);
+  let audioExplosion = new Audio(musicExplosion);
+
+  let audioBackgroundMenu = new Audio(musicMenu);
+  let audioBackgroundGame = new Audio(musicDuringGame);
+  let audioBackgroundGameOver = new Audio(musicGameOver);
 
   let imageHero = "USS_Enterprise.png";
-  let musicBackground = new Music(musicMenu);
-  let musicGame = new Music();
+  
+  //let musicGame = new Music();
   let asteroids = [];
   let isAlive = true;
   let numberAsteroids = 1;
@@ -41,36 +46,15 @@ function GameFramework() {
   let imgGameOver = new Image();
   let messageScoreDuringGame = "Score : ";
   let messageScoreGameOver = "Votre score est de ";
-  //let imagesAsteroid = ["", ]
-  //var item = items[Math.floor(Math.random()*items.length)];
 
   window.addEventListener('mousemove', onMouseUpdate, false);
   window.addEventListener('click', createShoot, false);
   window.addEventListener("keypress", keypress);
 
-  /*Object.observe(gameMode, function() {
-      switch(gameMode.value) {
-        case 0:
-          musicBackground.changeAndPlay(musicMenu);
-          break;
-
-        case 1:
-          musicBackground.changeAndPlay(musicDuringGame);
-          break;
-
-        case 2:
-          musicBackground.changeAndPlay(musicGameOver);
-          break;
-        
-        default:
-          break;
-      }
-  });*/
-
   function init() {
     width = canvas.width;
     height = canvas.height;
-    musicBackground.playLoop(musicMenu);
+    audioBackgroundMenu.play();
     initialiseHeroAndPosition();
 
     animate();
@@ -88,6 +72,9 @@ function GameFramework() {
     } 
     
     else if (gameMode == 1) {
+      audioBackgroundGame.play();
+      audioBackgroundGameOver.stop();
+      audioBackgroundMenu.stop();
       ctx.clearRect(0, 0, width, height);
       displayScore(messageScoreDuringGame, 10, 30);
 
@@ -135,6 +122,8 @@ function GameFramework() {
   }
 
   function menu() {
+    audioBackgroundGameOver.currentTime = 0;
+    audioBackgroundGame.currentTime = 0;
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
     imgJouerPress.src = "jouer3.png";
@@ -153,7 +142,10 @@ function GameFramework() {
   }
 
   function gameOver() {
-    musicBackground.stop();
+    audioBackgroundGameOver.play();
+    audioBackgroundMenu.currentTime = 0;
+    audioBackgroundMenu.currentTime = 0;
+    //musicBackground.stop();
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
     imgGameOver.src = "GameOver.png";
@@ -204,10 +196,11 @@ function GameFramework() {
 
     let shoot = new Shoot(x, y, vx, vy, w, h);
     tabShoot.push(shoot);
-    //audioShoot = new Audio(musicShoot);
+    audioShoot.currentTime = 0;
     audioShoot.play();
   }
 
+  
   function drawShoot() {
     for (var i = 0; i < tabShoot.length; i++) {
       tabShoot[i].draw(ctx);
@@ -218,7 +211,7 @@ function GameFramework() {
           if(detectCollision(tabShoot[i], asteroids[j])) {
             asteroids.splice(j, 1);
             tabShoot.splice(i, 1);
-            audioExplosion = new Audio(musicExplosion);
+            audioExplosion.currentTime = 0;
             audioExplosion.play();
             incrementScore();
           }
@@ -358,7 +351,7 @@ class Shoot extends ObjectGraphical {
   }
 }
 
-function Music(musicChoised) {
+/*function Music(musicChoised) {
   let audio;
 
   function playLoop() {
@@ -383,4 +376,4 @@ function Music(musicChoised) {
     stop: stop,
     changeAndPlay: changeAndPlay
   }
-}
+}*/
